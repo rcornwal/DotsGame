@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Use touch input to create connections between dots
+/// </summary>
 public class DotConnections : MonoBehaviour {
 
     [Header("References")]
@@ -24,6 +27,7 @@ public class DotConnections : MonoBehaviour {
         touchLine = GameObject.Instantiate(connectionLinePrefab).GetComponent<ConnectionLine>();
 	}
 
+    // Line from the last connected space to the touch position
     void UpdateLine(Vector3 touchPos) {
         if (!currentDotLink.IsEmpty()) {
             BoardSpace lastConnected = currentDotLink.lastConnected;
@@ -34,13 +38,14 @@ public class DotConnections : MonoBehaviour {
         }
     }
 
+    // Find valid space, searching all board spaces for one close enough to the touch
     BoardSpace FindFirstSpace(Vector3 touchPos) {
         List<List<BoardSpace>> boardArray = board.BoardArray;
         for (int i = 0; i < boardArray.Count; i++) {
             for (int k = 0; k < boardArray[i].Count; k++) {
                 BoardSpace curSpace = boardArray[i][k];
                 float touchDist = Vector3.Distance(touchPos, curSpace.GetScreenPosition());
-                if (touchDist < board.touchDistance) {
+                if (touchDist < board.DotTouchDistance) {
                     return curSpace;
                 }
             }
@@ -48,11 +53,12 @@ public class DotConnections : MonoBehaviour {
         return null;
     }
 
+    // Search the possbile spaces for one close enough to the touch
     BoardSpace FindSpace(Vector3 touchPos, List<BoardSpace> possibleSpaces) {
         for (int i = 0; i < possibleSpaces.Count; i++) {
             BoardSpace curSpace = possibleSpaces[i];
             float touchDist = Vector3.Distance(touchPos, curSpace.GetScreenPosition());
-            if (touchDist < board.touchDistance) {
+            if (touchDist < board.DotTouchDistance) {
                 return curSpace;
             }
         }
@@ -61,6 +67,7 @@ public class DotConnections : MonoBehaviour {
 
     void OnSwipe(Vector3 touchPos) {
 
+        // look for a valid space to add to our link
         BoardSpace space;
         if (currentDotLink.IsEmpty()) {
             space = FindFirstSpace(touchPos);
@@ -69,8 +76,9 @@ public class DotConnections : MonoBehaviour {
             space = FindSpace(touchPos, possibleSpaces);
         }
 
+        // update our dot link
         if (space != null) {
-            if (space == currentDotLink.previousSpace) {
+            if (space == currentDotLink.previousConnected) {
                 currentDotLink.RemoveSpace();
             } else {
                 if (currentDotLink.CreatesSquare(space)) {
@@ -83,6 +91,8 @@ public class DotConnections : MonoBehaviour {
     }
 
     void OnTouchEnd() {
+
+        // score the dots in our dot list
         if (dotSquare.SquareExists(currentDotLink)) {
             dotSquare.Score();
         } else {
@@ -94,9 +104,12 @@ public class DotConnections : MonoBehaviour {
                 }
             }
         }
+
         dotSquare.Reset();
         currentDotLink.Reset();
         touchLine.Remove();
+
+        // drop the dots
         board.DropDots();
     }
 }

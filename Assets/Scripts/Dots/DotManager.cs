@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Handles the creation and management of the dot pool. 
+/// Assigns each dot their type.
+/// </summary>
 public class DotManager : MonoBehaviour {
-    
+
     [System.Serializable]
     public struct DotType {
         public int typeID;
@@ -19,16 +23,21 @@ public class DotManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        float screenScaleFactor = boardCoordinateSpace.GetScaleFactor();
-        int dotPoolSize = boardCoordinateSpace.columns * boardCoordinateSpace.rows;
-        dotPool = new ObjectPool(dotPrefab, dotPoolSize * 2);
+
+        // create our dot pool
+        int dotPoolSize = boardCoordinateSpace.columns * boardCoordinateSpace.rows * 2;
+        dotPool = new ObjectPool(dotPrefab, dotPoolSize);
+
+        // scales the dots to match the screen ratio
+        float dotScaleFactor = boardCoordinateSpace.GetDotScaleFactor();
         List<GameObject> dotObjects = dotPool.GetPoolObjects();
         for (int i = 0; i < dotObjects.Count; i++) {
-            dotObjects[i].GetComponent<DotController>().SetManager(this);
-            dotObjects[i].transform.GetChild(0).localScale = dotObjects[i].transform.GetChild(0).localScale * screenScaleFactor;
+            DotController dot = dotObjects[i].GetComponent<DotController>();
+            dot.SetScaleFactor(dotScaleFactor);
         }
     }
 
+    // Retrieves a dot from the pool, with a random type
     public DotController GetNewDot() {
         GameObject dotObject = dotPool.GetFromPool();
         DotController dot = dotObject.GetComponent<DotController>();

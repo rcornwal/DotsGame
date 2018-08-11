@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Sets up the board coordinate space, and provides common board positions,
+/// sizing, and spacing.
+/// </summary>
 public class BoardCoordinateSpace : MonoBehaviour {
 
     const float defaultScreenRatio = 1.5f;
@@ -48,11 +52,11 @@ public class BoardCoordinateSpace : MonoBehaviour {
         return centerX + (width * boardExtent);
     }
 
-    //public float MaxY() {            
-    //    float centerY = screenUtil.CenterY();
-    //    float height = MaxX() - MinX();
-    //    return centerY + (height * .5f);
-    //}
+    public float MaxY() {            
+        float centerY = screenUtil.CenterY();
+        float height = MaxX() - MinX();
+        return centerY + (height * .5f);
+    }
 
     public float MinY() {            
         float centerY = screenUtil.CenterY();
@@ -60,9 +64,9 @@ public class BoardCoordinateSpace : MonoBehaviour {
         return centerY - (height * .5f);
     }
 
-    //public float Height() {
-    //    return (MaxY() + Mathf.Abs(MinY()));
-    //}
+    public float Height() {
+        return (MaxY() + Mathf.Abs(MinY()));
+    }
 
     public float Width() {
         return (MaxX() + Mathf.Abs(MinX()));
@@ -84,7 +88,7 @@ public class BoardCoordinateSpace : MonoBehaviour {
         return (Width() / (float)columns);
     }
 
-    public float GetScaleFactor() {
+    public float GetDotScaleFactor() {
         float scaleFactor = MathUtil.ChangeRange(screenRatio, screenRatioRange, dotScaleRange);
         return scaleFactor;
     }

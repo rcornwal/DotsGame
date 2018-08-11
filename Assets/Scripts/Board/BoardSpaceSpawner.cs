@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Attached to the top board spaces. Spawns new dots to replenish the board 
+/// </summary>
 public class BoardSpaceSpawner : MonoBehaviour {
 
     ScreenUtil screenUtil;
@@ -15,19 +18,22 @@ public class BoardSpaceSpawner : MonoBehaviour {
         screenUtil = Camera.main.GetComponent<ScreenUtil>();
 	}
 	
+    // Board coordinate space, to get spacing between spawned dots
     public void SetCoordinateSpace(BoardCoordinateSpace boardCoordinateSpace) {
         coordinateSpace = boardCoordinateSpace;
     }
 
+    // Set dot manager, to access the dot pool
     public void SetDotManager(DotManager manager) {
         dotManager = manager;
     }
 
+    // Spawn a new dot
     public DotController SpawnDot(List<Waypoint> currentWaypoints) {
 
         DotController newDot = dotManager.GetNewDot();
 
-        // add waypoints to the new dot
+        // add drop waypoints to the new dot
         for (int i = 0; i < currentWaypoints.Count; i++) {
             newDot.AddWaypoint(currentWaypoints[i]);
         }

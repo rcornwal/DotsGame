@@ -2,29 +2,37 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Controlls the dot. Handles the drop movement and animations
+/// </summary>
 public class DotController : MonoBehaviour {
 
     public delegate void DropComplete();
     public DropComplete OnDropComplete;
+
+    [Header("Child References")]
+    public GameObject dotCircle;
+    public GameObject selectionCircle;
 
     [Header("Settings")]
     public AnimationCurve dropCurve;
 
     // Components
     Animator animator;
-    SpriteRenderer dotCirlce;
     MovingObject movable;
-    SpriteRenderer selectionCircle;
+    SpriteRenderer dotSprite;
+    SpriteRenderer selectionSprite;
 
     DotManager.DotType dotType;
-    DotManager dotManager;
     List<Waypoint> dropWaypoints;
     public bool IsDropping { get; set; }
-    public bool FlaggedToFall;
+
+    [HideInInspector]
+    public bool FlaggedToDrop;
 
     void Awake() {
-        dotCirlce = transform.GetChild(0).GetComponent<SpriteRenderer>();
-        selectionCircle = transform.GetChild(1).GetComponent<SpriteRenderer>();
+        dotSprite = dotCircle.GetComponent<SpriteRenderer>();
+        selectionSprite = selectionCircle.GetComponent<SpriteRenderer>();
         movable = GetComponent<MovingObject>();
         animator = GetComponent<Animator>();
     }
@@ -33,29 +41,24 @@ public class DotController : MonoBehaviour {
         dropWaypoints = new List<Waypoint>();
         OnDropComplete = (() => { });
     }
-	
-    public void SetManager(DotManager manager) {
-        dotManager = manager;
-    }
 
-    public DotManager GetManager() {
-        return dotManager;
-    }
-
+    // Add waypoint to drop path
     public void AddWaypoint(Waypoint waypoint) {
         dropWaypoints.Add(waypoint);
     }
 
+    // Stop and reset any movement
     public void StopMovement() {
         movable.Reset();
         dropWaypoints.Clear();
-        FlaggedToFall = false;
+        FlaggedToDrop = false;
     }
 
-    public void Drop(float dropSpeed) {
+    // Start the drop movement with the current dropWaypoints
+    public void Drop(float dropTime) {
         dropWaypoints.Add(new Waypoint(transform.position));
         movable.AddWaypoints(dropWaypoints);
-        movable.SetMoveSpeed(dropSpeed);
+        movable.SetMoveTime(dropTime);
         movable.SetAnimationCurve(dropCurve);
         movable.OnMoveComplete = (()=>{
             IsDropping = false;
@@ -65,20 +68,23 @@ public class DotController : MonoBehaviour {
         movable.Play();
     }
 
+    // Set the type and change the colors
     public void SetDotType(DotManager.DotType type) {
         dotType = type;
-        dotCirlce.color = type.dotColor;
-        selectionCircle.color = type.dotColor;
+        dotSprite.color = type.dotColor;
+        selectionSprite.color = type.dotColor;
     }
 
     public DotManager.DotType GetDotType() {
         return dotType;
     }
 
+    // Play the select animation
     public void Select() {
         animator.Play("DotSelect", 0);
     }
 
+    // Play the score animation
     public void Score() {
         if (movable.IsMoving()) {
             movable.Reset();
@@ -86,12 +92,16 @@ public class DotController : MonoBehaviour {
         animator.Play("DotScore", 0);
     }
 
+    // Scale the dot sprite by the given scaleFactor, to match screen ratio
+    public void SetScaleFactor(float scaleFactor) {
+        Vector3 curScale = dotCircle.transform.localScale;
+        Vector3 newScale = curScale * scaleFactor;
+        dotCircle.transform.localScale = newScale;
+    }
+
+    // Reset dot and return to its object pool
     public void ScoreAnimationComplete() {
         PoolObject poolObject = GetComponent<PoolObject>();
-        if (poolObject == null) {
-            Debug.LogError("Dot does not belong to an object pool");
-            return;
-        }
         StopMovement();
         poolObject.ReturnToPool();
     }

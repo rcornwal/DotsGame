@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Utility to get common screen positions, bounds, and the screen ratio
+/// </summary>
 [RequireComponent(typeof(Camera))]
 public class ScreenUtil : MonoBehaviour{
     

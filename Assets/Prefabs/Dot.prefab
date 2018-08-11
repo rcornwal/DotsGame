@@ -141,6 +141,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61ee5b4a8d8ea4c72a123bbed11af42f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dotCircle: {fileID: 1188374221128330}
+  selectionCircle: {fileID: 1239988114754458}
   dropCurve:
     serializedVersion: 2
     m_Curve:
@@ -183,7 +185,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 0
-  FlaggedToFall: 0
+  FlaggedToDrop: 0
 --- !u!212 &212561101004465264
 SpriteRenderer:
   m_ObjectHideFlags: 1

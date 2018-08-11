@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Connection Lines exist between board spaces whose dot's are the same type
+/// </summary>
 [RequireComponent(typeof(LineRenderer))]
 public class ConnectionLine : MonoBehaviour {
 

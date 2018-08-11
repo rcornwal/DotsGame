@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Moves an object along a straight line, according to its waypoint path and
+/// animation curve.
+/// </summary>
 public class MovingObject : MonoBehaviour {
 
     public delegate void MoveComplete();
@@ -17,10 +21,12 @@ public class MovingObject : MonoBehaviour {
 
 	IEnumerator MoveCoroutine;
 
-	public void SetMoveSpeed(float newTime){
-        moveTime = newTime;
-	}
+    void Start() {
+        waypointPath = new List<Waypoint>();
+        OnMoveComplete += (() => { });
+    }
 
+    // Start moving along waypoint path
 	public void Play() {        
         if (Setup()) {
             isMoving = true;
@@ -30,6 +36,7 @@ public class MovingObject : MonoBehaviour {
         }
 	}
 
+    // Validate the moving object, and setup waypoints
     public bool Setup() {   
 
         // check for active game object
@@ -45,32 +52,24 @@ public class MovingObject : MonoBehaviour {
         }
 
         // This assumes the dots always move in a straight line
+        // we can ignore all waypoints between the first and last
         startWaypointIndex = 0;
         endWaypointIndex = waypointPath.Count - 1;;
         transform.position = waypointPath[0].Position;
 
-        MoveCoroutine = MoveTime();
+        MoveCoroutine = MoveOverTime();
         return true;
     }
 
-    public void AddWaypoint(Waypoint waypoint) {
-        waypointPath.Insert(0, waypoint);
-    }
-
+    // Set the waypoint path
     public void AddWaypoints(List<Waypoint> waypoints) {
-        float x = 0;
-        for (int i = 0; i < waypoints.Count; i++) {
-            if (i == 0) {
-                x = waypoints[i].Position.x;
-            }
-            if (waypoints[i].Position.x != x) {
-                Debug.LogError("Moving sideways");
-            }
+        for (int i = 0; i < waypoints.Count; i++) {            
             waypointPath.Insert(0, waypoints[i]);
         }
     }
 
-    IEnumerator MoveTime() {
+    // Move the object along its path, over the set amount of time
+    IEnumerator MoveOverTime() {
         float curTime = 0;
 
         Vector3 startPos = waypointPath[startWaypointIndex].Position;
@@ -91,25 +90,29 @@ public class MovingObject : MonoBehaviour {
         FinishMovement();
     }
 
+    // Movement has completed successful
     public void FinishMovement() {
         transform.position = waypointPath[endWaypointIndex].Position;
         OnMoveComplete();
         Reset();
     }
 
+    // Set the curve the movement will follow
     public void SetAnimationCurve(AnimationCurve curve) {
         animationCurve = curve;
     }
 
-	void Start() {
-        waypointPath = new List<Waypoint>();
-        OnMoveComplete += (() => { });
-	}
+    // Set how long the movement will take (in seconds)
+    public void SetMoveTime(float newTime) {
+        moveTime = newTime;
+    }
 
+    // Get if the object is currently moving
     public bool IsMoving() {
         return isMoving;
     }
 
+    // Stop all movement, reset callbacks and waypoint path
     public void Reset() {
         StopAllCoroutines();
         animationCurve = null;
@@ -117,12 +120,4 @@ public class MovingObject : MonoBehaviour {
         OnMoveComplete += (() => { });
         isMoving = false;
     }
-
-	void OnDrawGizmosSelected() {
-        Gizmos.color = Color.green;
-        for (int i = 0; i < waypointPath.Count; i++) {
-            Vector3 point = waypointPath[i].Position;
-            Gizmos.DrawSphere(point, .5f);
-        }
-	}
 }

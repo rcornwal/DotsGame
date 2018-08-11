@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Holds a pool of objects offscreen. Objects can be requested from the 
+/// pool and returned when no longer in use.
+/// </summary>
 public class ObjectPool {
 
     Vector3 offscreenPos = new Vector3(1000, 1000, 1000);
@@ -9,6 +13,7 @@ public class ObjectPool {
     List<GameObject> objectPool;
     int objectPoolSize;
 
+    // Instantiate the objects of our pool
     void FillPool() {
         GameObject newObject;
         for (int i = 0; i < objectPoolSize; i++) {
@@ -20,6 +25,7 @@ public class ObjectPool {
         }
     }
 
+    // Creates a new object pool
     public ObjectPool(GameObject prefab, int poolSize) {
         objectPool = new List<GameObject>();
         pooledObject = prefab;
@@ -27,29 +33,13 @@ public class ObjectPool {
         FillPool();
     }
 
-    public ObjectPool(List<GameObject> prefabs, List<int> poolSizes) {
-        objectPool = new List<GameObject>();
-        for (int i = 0; i < prefabs.Count; i++) {
-            pooledObject = prefabs[i];
-            objectPoolSize = poolSizes[i];
-            FillPool();
-        }
-    }
-
-    public ObjectPool(List<GameObject> prefabs, int poolSize) {
-        objectPool = new List<GameObject>();
-        for (int i = 0; i < prefabs.Count; i++) {
-            pooledObject = prefabs[i];
-            objectPoolSize = poolSize;
-            FillPool();
-        }
-    }
-
+    // Returns a gameobject to the pool for future use
     public void ReturnToPool(GameObject objectToAdd) {
         objectPool.Add (objectToAdd);
         objectToAdd.transform.position = offscreenPos;
     }
 
+    // Retrieves a gameobject from the pool
     public GameObject GetFromPool() {
         if (objectPool.Count == 0) {
             Debug.LogWarning ("Pool needs to be refilled");
@@ -60,24 +50,7 @@ public class ObjectPool {
         return retrievedObject;
     }
 
-    public void Shuffle() {
-        for (int i = 0; i < objectPool.Count; i++) {
-            GameObject temp = objectPool[i];
-            int randomIndex = Random.Range(i, objectPool.Count);
-            objectPool[i] = objectPool[randomIndex];
-            objectPool[randomIndex] = temp;
-        }
-    }
-
-    public GameObject GetRandomFromPool() {
-        Shuffle();
-        return GetFromPool();
-    }
-
-    public int GetPoolSize() {
-        return objectPool.Count;
-    }
-
+    // Returns all the currently pooled objects
     public List<GameObject> GetPoolObjects() {
         return objectPool;
     }

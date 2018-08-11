@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Sets up the board by creating board spaces and handles dropping dots
+/// to replenish the board
+/// </summary>
 public class Board : MonoBehaviour {
     
     [Header("References")]
@@ -9,19 +13,22 @@ public class Board : MonoBehaviour {
     public DotManager dotManager;
 
     [Header("Settings")]
-    public float dropSpeed;
+    public float dropTime;
     public float dropRowDelay;
-    public float touchDistance { get; private set; }
+
+    public float DotTouchDistance { get; private set; }
     public List<List<BoardSpace>> BoardArray { get; private set; }
 
     int boardWidth;
     int boardHeight;
+
+    // used to calculate when dropping has finished
     int dotsToDrop;
     int dotsDropped;
+    bool dotsDropping;
 
     BoardCoordinateSpace boardCoordinateSpace;
     WaitForSeconds dropRow;
-    bool dotsDropping;
     Coroutine DropCoroutine;
 
     void Awake() {
@@ -29,22 +36,30 @@ public class Board : MonoBehaviour {
         boardCoordinateSpace = GetComponent<BoardCoordinateSpace>();
     }
 
-    IEnumerator TestDrop() {
-        yield return new WaitForSeconds(.5f);
+    // Fills the board for the first time
+    IEnumerator StartBoard() {
+        yield return dropRow;
         DropDots();
     }
 
 	// Use this for initialization
 	void Start () {
-        //Time.timeScale = .2f;
         boardWidth = boardCoordinateSpace.BoardWidth();
         boardHeight = boardCoordinateSpace.BoardHeight();
         dropRow = new WaitForSeconds(dropRowDelay);
         SetupBoard();
-        touchDistance = Mathf.Min(boardCoordinateSpace.XSpacing(), boardCoordinateSpace.YSpacing()) * .5f;
-        StartCoroutine(TestDrop());
+        CalculateTouchRadius();
+        StartCoroutine(StartBoard());
 	}
 	
+    // Use the grid spacing to calculate the touch radius for each dot
+    void CalculateTouchRadius() {
+        float xSpacing = boardCoordinateSpace.XSpacing();
+        float ySpacing = boardCoordinateSpace.YSpacing();
+        DotTouchDistance = Mathf.Min(xSpacing, ySpacing) * .5f;
+    }
+
+    // Create our board array by instantiating board spaces
     void SetupBoard() {
         BoardArray = new List<List<BoardSpace>>();
         for (int i = 0; i < boardWidth; i++) {
@@ -64,6 +79,7 @@ public class Board : MonoBehaviour {
         CalculateAdjacentSpaces();
     }
 
+    // Call to each board space to find their adjacent spaces
     void CalculateAdjacentSpaces() {
         for (int i = 0; i < boardWidth; i++) {
             for (int k = 0; k < boardHeight; k++) {
@@ -72,6 +88,7 @@ public class Board : MonoBehaviour {
         }
     }
 
+    // Callback for when each dot completes its drop movement
     void OnDropComplete() {
         dotsDropped++;
         if (dotsDropped == dotsToDrop) {
@@ -82,10 +99,11 @@ public class Board : MonoBehaviour {
         }
     }
 
+    // Clear out dot spawners at end of dropping
     void ResetSpawners() {
         int topRow = boardHeight-1;
         for (int i = 0; i < BoardArray.Count; i++) {
-            BoardSpaceSpawner spawner = BoardArray[i][topRow].GetComponent<BoardSpaceSpawner>();
+            BoardSpaceSpawner spawner = BoardArray[i][topRow].GetSpawner();
             spawner.Reset();
         }
     }
@@ -93,30 +111,36 @@ public class Board : MonoBehaviour {
     IEnumerator Drop() {
         bool overlappingDrop = dotsDropping;
         dotsDropping = true;
+
+        // Drop dots column by column
         for (int k = 0; k < boardHeight; k++) {
             for (int i = 0; i < boardWidth; i++) {
                 BoardSpace curSpace = BoardArray[i][k];
                 DotController curDot = curSpace.GetCurrentDot();
                 bool alreadyDropping = curDot.IsDropping;
-                if (curSpace.IsEmpty || curDot.FlaggedToFall || curDot.IsDropping) {
+                if (curSpace.IsEmpty || curDot.FlaggedToDrop || curDot.IsDropping) {
                     dotsToDrop++;
                     curDot.OnDropComplete += OnDropComplete;
-                    curSpace.DropDot(dropSpeed);
+                    curSpace.DropDot(dropTime);
                 }
             }
+
+            // offset each row's drop, if its not an overlapping drop cal
             if (!overlappingDrop) {
                 yield return dropRow;
             }
         }
     }
 
+    // Drop dots to refill the board
     public void DropDots() {
+
+        // stops all dot movement and drop coroutines, for overlapping drop calls
         if (DropCoroutine != null) {     
             StopCoroutine(DropCoroutine);
         }
         dotsToDrop = 0;
         dotsDropped = 0;
-
         for (int i = 0; i < boardWidth; i++) {
             for (int k = 0; k < boardHeight; k++) {
                 BoardSpace curSpace = BoardArray[i][k];
@@ -127,11 +151,12 @@ public class Board : MonoBehaviour {
             }
         }
 
+        // find or spawn new dots to go into score board spaces
         for (int i = 0; i < boardWidth; i++) {
             for (int k = 0; k < boardHeight; k++) {
                 BoardSpace curSpace = BoardArray[i][k];
                 DotController curDot = curSpace.GetCurrentDot();
-                if (curSpace.IsEmpty || curDot.FlaggedToFall) {
+                if (curSpace.IsEmpty || curDot.FlaggedToDrop) {
                     curSpace.SetNewDot();
                 }
             }
