@@ -1,4 +1,4 @@
-﻿using System.Collections;
+ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -32,7 +32,6 @@ public class Board : MonoBehaviour {
     Coroutine DropCoroutine;
 
     void Awake() {
-        Application.targetFrameRate = 60;
         boardCoordinateSpace = GetComponent<BoardCoordinateSpace>();
     }
 
@@ -79,7 +78,7 @@ public class Board : MonoBehaviour {
         CalculateAdjacentSpaces();
     }
 
-    // Call to each board space to find their adjacent spaces
+    // Call to each board space, to find their adjacent spaces
     void CalculateAdjacentSpaces() {
         for (int i = 0; i < boardWidth; i++) {
             for (int k = 0; k < boardHeight; k++) {
@@ -91,6 +90,8 @@ public class Board : MonoBehaviour {
     // Callback for when each dot completes its drop movement
     void OnDropComplete() {
         dotsDropped++;
+
+        // all dots completed
         if (dotsDropped == dotsToDrop) {
             ResetSpawners();
             dotsDropping = false;
@@ -125,7 +126,7 @@ public class Board : MonoBehaviour {
                 }
             }
 
-            // offset each row's drop, if its not an overlapping drop cal
+            // offset each row's drop, if its not an overlapping drop call
             if (!overlappingDrop) {
                 yield return dropRow;
             }

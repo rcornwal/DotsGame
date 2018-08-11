@@ -172,7 +172,7 @@ public class BoardSpace : MonoBehaviour {
         transform.position = screenPosition;
     }
 
-    // Recusviely propogates up adjacent spaces to find a new dot
+    // Recursively propogates up adjacent spaces to find a new dot
     DotController FindNextDot(BoardSpace space, List<Waypoint> waypoints) {
         AdjacentSpaces adjacent = space.GetAdjacentSpaces();
         Waypoint spaceWaypoint = new Waypoint(screenPosition);
@@ -225,7 +225,7 @@ public class BoardSpace : MonoBehaviour {
         IsEmpty = false;
     }
 
-    // Start dropping current dot to this space's screen position
+    // Start dropping current dot down to this space's screen position
     public void DropDot(float dropSpeed) {
         if (currentDot.IsDropping) {
             currentDot.AddWaypoint(new Waypoint(screenPosition));
